@@ -1,5 +1,5 @@
 import { Calendar as BigCalendar, dateFnsLocalizer, View } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay } from "date-fns";
+import { format, parse, startOfWeek, getDay, addDays, setHours, setMinutes } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 import { useState } from "react";
 import { CustomToolbar } from "./CustomToolbar";
@@ -19,33 +19,70 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-// Sample coaches data - replace with your actual coaches data
+// Sample coaches data
 const coaches: Coach[] = [
   { id: "1", name: "John Doe", title: "Senior Coach" },
   { id: "2", name: "Jane Smith", title: "Life Coach" },
   { id: "3", name: "Mike Johnson", title: "Career Coach" },
 ];
 
-// Sample events - replace with your actual events
-const sampleEvents: CalendarEvent[] = [
-  {
-    id: 1,
-    title: "Coaching Session with John",
-    start: new Date(),
-    end: new Date(new Date().setHours(new Date().getHours() + 1)),
-    coachId: "1",
-  },
-  {
-    id: 2,
-    title: "Career Planning with Mike",
-    start: new Date(new Date().setHours(new Date().getHours() + 2)),
-    end: new Date(new Date().setHours(new Date().getHours() + 3)),
-    coachId: "3",
-  },
-];
+// Function to generate a color based on coach ID
+const generateCoachColor = (coachId: string): string => {
+  // Simple hash function to generate a consistent hue for each coach
+  let hash = 0;
+  for (let i = 0; i < coachId.length; i++) {
+    hash = coachId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Convert hash to hue (0-360)
+  const hue = hash % 360;
+  // Use fixed saturation and lightness for consistency
+  return `hsl(${hue}, 70%, 65%)`;
+};
+
+// Generate sample events across a week
+const generateSampleEvents = (): CalendarEvent[] => {
+  const events: CalendarEvent[] = [];
+  const startOfWeekDate = startOfWeek(new Date());
+  let eventId = 1;
+
+  coaches.forEach(coach => {
+    // Generate 50 events for each coach
+    for (let i = 0; i < 50; i++) {
+      // Random day of the week (0-6)
+      const dayOffset = Math.floor(Math.random() * 7);
+      // Random hour between 9 and 17 (9 AM to 5 PM)
+      const hour = 9 + Math.floor(Math.random() * 9);
+      // Random minute (0, 15, 30, 45)
+      const minute = Math.floor(Math.random() * 4) * 15;
+      
+      const start = setMinutes(
+        setHours(addDays(startOfWeekDate, dayOffset), hour),
+        minute
+      );
+      
+      // Duration between 30 minutes and 2 hours
+      const durationInMinutes = [30, 60, 90, 120][Math.floor(Math.random() * 4)];
+      const end = new Date(start.getTime() + durationInMinutes * 60000);
+
+      events.push({
+        id: eventId++,
+        title: `Session with ${coach.name}`,
+        start,
+        end,
+        coachId: coach.id,
+      });
+    }
+  });
+
+  return events;
+};
+
+// Generate sample events
+const sampleEvents = generateSampleEvents();
 
 export const Calendar = () => {
-  const [view, setView] = useState<View>("month");
+  const [view, setView] = useState<View>("week"); // Default to week view for better testing
   const [date, setDate] = useState(new Date());
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
 
@@ -56,6 +93,20 @@ export const Calendar = () => {
 
   console.log("Selected Coach ID:", selectedCoachId);
   console.log("Filtered Events:", filteredEvents);
+
+  // Custom event style
+  const eventStyleGetter = (event: CalendarEvent) => {
+    const backgroundColor = generateCoachColor(event.coachId);
+    return {
+      style: {
+        backgroundColor,
+        border: 'none',
+        borderRadius: '4px',
+        color: '#fff',
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+      },
+    };
+  };
 
   return (
     <div className="h-[800px] p-4 bg-white rounded-lg shadow">
@@ -76,6 +127,7 @@ export const Calendar = () => {
         components={{
           toolbar: CustomToolbar,
         }}
+        eventPropGetter={eventStyleGetter}
         className="calendar-custom"
       />
     </div>
