@@ -96,3 +96,8 @@
 .calendar-custom .rbc-current-time-indicator {
   @apply bg-blue-600;
 }
+
+/* Add styles for the current day header */
+.calendar-custom .rbc-header.rbc-today {
+  @apply text-blue-600 font-bold;
+}
