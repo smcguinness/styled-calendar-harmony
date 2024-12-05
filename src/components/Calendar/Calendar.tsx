@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CustomToolbar } from "./CustomToolbar";
 import { CoachSelector } from "./CoachSelector";
 import { Coach, CalendarEvent } from "@/types/calendar";
+import { Toggle } from "@/components/ui/toggle";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const locales = {
@@ -99,17 +100,21 @@ const generateSampleEvents = (): CalendarEvent[] => {
 const sampleEvents = generateSampleEvents();
 
 export const Calendar = () => {
-  const [view, setView] = useState<View>("week"); // Default to week view for better testing
+  const [view, setView] = useState<View>("week");
   const [date, setDate] = useState(new Date());
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
+  const [useResourceView, setUseResourceView] = useState(false);
 
   // Filter events based on selected coach
   const filteredEvents = selectedCoachId
     ? sampleEvents.filter((event) => event.coachId === selectedCoachId)
     : sampleEvents;
 
-  console.log("Selected Coach ID:", selectedCoachId);
-  console.log("Filtered Events:", filteredEvents);
+  // Convert coaches to resources format
+  const resources = coaches.map(coach => ({
+    id: coach.id,
+    title: coach.name,
+  }));
 
   // Custom event style
   const eventStyleGetter = (event: CalendarEvent) => {
@@ -120,22 +125,40 @@ export const Calendar = () => {
         border: 'none',
         borderRadius: '4px',
         color: '#fff',
-        textShadow: '0 1px 2px rgba(0, 0, 0, 0.4)', // Increased text shadow for better readability
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.4)',
         fontWeight: '500',
       },
     };
   };
 
+  // Map events to include resourceId when using resource view
+  const eventsWithResource = filteredEvents.map(event => ({
+    ...event,
+    resourceId: event.coachId,
+  }));
+
   return (
     <div className="h-[800px] p-4 bg-white rounded-lg shadow">
-      <CoachSelector
-        coaches={coaches}
-        selectedCoachId={selectedCoachId}
-        onCoachSelect={setSelectedCoachId}
-      />
+      <div className="flex items-center gap-4 mb-4">
+        <CoachSelector
+          coaches={coaches}
+          selectedCoachId={selectedCoachId}
+          onCoachSelect={setSelectedCoachId}
+        />
+        {!selectedCoachId && (
+          <Toggle
+            pressed={useResourceView}
+            onPressedChange={setUseResourceView}
+            className="ml-4"
+            aria-label="Toggle resource view"
+          >
+            Group by Coach
+          </Toggle>
+        )}
+      </div>
       <BigCalendar
         localizer={localizer}
-        events={filteredEvents}
+        events={eventsWithResource}
         startAccessor="start"
         endAccessor="end"
         view={view}
@@ -147,6 +170,9 @@ export const Calendar = () => {
         }}
         eventPropGetter={eventStyleGetter}
         className="calendar-custom"
+        resources={useResourceView && !selectedCoachId ? resources : undefined}
+        resourceIdAccessor="id"
+        resourceTitleAccessor="title"
       />
     </div>
   );
