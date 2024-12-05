@@ -197,16 +197,27 @@ export const Calendar = () => {
   };
 
   // Custom slot style for blocked times
-  const slotPropGetter = (date: Date) => {
-    const isBlocked = selectedCoachId
-      ? isTimeBlocked(date, new Date(date.getTime() + 30 * 60000), selectedCoachId)
-      : false;
+  const slotPropGetter = (date: Date, resourceId?: string) => {
+    // When using resource view, check blocked times for the specific coach
+    const coachToCheck = resourceId || selectedCoachId;
+    
+    if (!coachToCheck) return {};
+
+    const coach = coaches.find(c => c.id === coachToCheck);
+    if (!coach) return {};
+
+    const isBlocked = isTimeBlocked(
+      date,
+      new Date(date.getTime() + 30 * 60000),
+      coachToCheck
+    );
 
     return {
       className: isBlocked ? 'blocked-time' : '',
       style: isBlocked ? {
         backgroundColor: 'rgba(0, 0, 0, 0.05)',
         cursor: 'not-allowed',
+        border: 'none',
       } : {},
     };
   };
