@@ -69,6 +69,10 @@
   @apply p-2 text-sm text-right;
 }
 
+.calendar-custom .rbc-date-cell.rbc-now {
+  @apply font-semibold text-blue-600;
+}
+
 .calendar-custom .rbc-button-link {
   @apply font-normal;
 }
