@@ -101,3 +101,12 @@
 .calendar-custom .rbc-header.rbc-today {
   @apply text-blue-600 font-bold;
 }
+
+/* Add styles for blocked times */
+.calendar-custom .blocked-time {
+  @apply cursor-not-allowed bg-neutral-100;
+}
+
+.calendar-custom .rbc-event {
+  @apply cursor-pointer transition-opacity hover:opacity-90;
+}

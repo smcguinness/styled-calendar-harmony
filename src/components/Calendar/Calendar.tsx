@@ -1,12 +1,15 @@
-import { Calendar as BigCalendar, dateFnsLocalizer, View } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay, addDays, setHours, setMinutes } from "date-fns";
+import { Calendar as BigCalendar, dateFnsLocalizer, View, SlotInfo } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay, addDays, setHours, setMinutes, isBefore, isAfter, set } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
 import { useState } from "react";
 import { CustomToolbar } from "./CustomToolbar";
 import { CoachSelector } from "./CoachSelector";
 import { Coach, CalendarEvent } from "@/types/calendar";
 import { Toggle } from "@/components/ui/toggle";
+import { SessionDialog } from "./SessionDialog";
+import { NewSessionDialog } from "./NewSessionDialog";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { useToast } from "@/components/ui/use-toast";
 
 const locales = {
   "en-US": enUS,
@@ -20,11 +23,32 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-// Sample coaches data
+// Sample coaches data with availability
 const coaches: Coach[] = [
-  { id: "1", name: "John Doe", title: "Senior Coach" },
-  { id: "2", name: "Jane Smith", title: "Life Coach" },
-  { id: "3", name: "Mike Johnson", title: "Career Coach" },
+  {
+    id: "1",
+    name: "John Doe",
+    title: "Senior Coach",
+    availability: { start: "08:00", end: "16:00" },
+    blockedTimes: [
+      {
+        start: setHours(setMinutes(new Date(), 0), 10),
+        end: setHours(setMinutes(new Date(), 0), 12),
+      },
+    ],
+  },
+  {
+    id: "2",
+    name: "Jane Smith",
+    title: "Life Coach",
+    availability: { start: "08:00", end: "16:00" },
+  },
+  {
+    id: "3",
+    name: "Mike Johnson",
+    title: "Career Coach",
+    availability: { start: "08:00", end: "16:00" },
+  },
 ];
 
 // Function to generate a color based on coach ID
@@ -67,11 +91,8 @@ const generateSampleEvents = (): CalendarEvent[] => {
   coaches.forEach(coach => {
     // Generate 50 events for each coach
     for (let i = 0; i < 50; i++) {
-      // Random day of the week (0-6)
       const dayOffset = Math.floor(Math.random() * 7);
-      // Random hour between 9 and 17 (9 AM to 5 PM)
-      const hour = 9 + Math.floor(Math.random() * 9);
-      // Random minute (0, 15, 30, 45)
+      const hour = 9 + Math.floor(Math.random() * 7); // Adjusted to be within availability
       const minute = Math.floor(Math.random() * 4) * 15;
       
       const start = setMinutes(
@@ -79,7 +100,6 @@ const generateSampleEvents = (): CalendarEvent[] => {
         minute
       );
       
-      // Duration between 30 minutes and 2 hours
       const durationInMinutes = [30, 60, 90, 120][Math.floor(Math.random() * 4)];
       const end = new Date(start.getTime() + durationInMinutes * 60000);
 
@@ -89,6 +109,7 @@ const generateSampleEvents = (): CalendarEvent[] => {
         start,
         end,
         coachId: coach.id,
+        studentName: `Student ${eventId}`, // Added sample student names
       });
     }
   });
@@ -104,6 +125,11 @@ export const Calendar = () => {
   const [date, setDate] = useState(new Date());
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
   const [useResourceView, setUseResourceView] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [showEventDialog, setShowEventDialog] = useState(false);
+  const [showNewSessionDialog, setShowNewSessionDialog] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
+  const { toast } = useToast();
 
   // Filter events based on selected coach
   const filteredEvents = selectedCoachId
@@ -116,6 +142,44 @@ export const Calendar = () => {
     title: coach.name,
   }));
 
+  const isTimeBlocked = (start: Date, end: Date, coachId: string): boolean => {
+    const coach = coaches.find(c => c.id === coachId);
+    if (!coach || !coach.availability) return true;
+
+    const startTime = set(new Date(), {
+      hours: parseInt(coach.availability.start.split(":")[0]),
+      minutes: parseInt(coach.availability.start.split(":")[1]),
+    });
+    const endTime = set(new Date(), {
+      hours: parseInt(coach.availability.end.split(":")[0]),
+      minutes: parseInt(coach.availability.end.split(":")[1]),
+    });
+
+    // Check if time is within availability
+    const timeStart = set(new Date(), {
+      hours: start.getHours(),
+      minutes: start.getMinutes(),
+    });
+    const timeEnd = set(new Date(), {
+      hours: end.getHours(),
+      minutes: end.getMinutes(),
+    });
+
+    if (isBefore(timeStart, startTime) || isAfter(timeEnd, endTime)) {
+      return true;
+    }
+
+    // Check if time overlaps with blocked times
+    if (coach.blockedTimes) {
+      return coach.blockedTimes.some(
+        blocked =>
+          (isBefore(start, blocked.end) && isAfter(end, blocked.start))
+      );
+    }
+
+    return false;
+  };
+
   // Custom event style
   const eventStyleGetter = (event: CalendarEvent) => {
     const backgroundColor = generateCoachColor(event.coachId);
@@ -127,7 +191,23 @@ export const Calendar = () => {
         color: '#fff',
         textShadow: '0 1px 2px rgba(0, 0, 0, 0.4)',
         fontWeight: '500',
+        cursor: 'pointer',
       },
+    };
+  };
+
+  // Custom slot style for blocked times
+  const slotPropGetter = (date: Date) => {
+    const isBlocked = selectedCoachId
+      ? isTimeBlocked(date, new Date(date.getTime() + 30 * 60000), selectedCoachId)
+      : false;
+
+    return {
+      className: isBlocked ? 'blocked-time' : '',
+      style: isBlocked ? {
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        cursor: 'not-allowed',
+      } : {},
     };
   };
 
@@ -136,6 +216,68 @@ export const Calendar = () => {
     ...event,
     resourceId: event.coachId,
   }));
+
+  const handleEventClick = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+    setShowEventDialog(true);
+  };
+
+  const handleSelectSlot = (slotInfo: SlotInfo) => {
+    if (!selectedCoachId) {
+      toast({
+        title: "Please select a coach",
+        description: "You must select a coach before booking a session",
+      });
+      return;
+    }
+
+    if (isTimeBlocked(slotInfo.start as Date, slotInfo.end as Date, selectedCoachId)) {
+      toast({
+        title: "Time slot not available",
+        description: "This time slot is outside of coach availability or is blocked",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedSlot({
+      start: slotInfo.start as Date,
+      end: slotInfo.end as Date,
+    });
+    setShowNewSessionDialog(true);
+  };
+
+  const handleReschedule = (event: CalendarEvent) => {
+    console.log("Reschedule session:", event);
+    setShowEventDialog(false);
+    toast({
+      title: "Reschedule requested",
+      description: "Reschedule functionality to be implemented",
+    });
+  };
+
+  const handleCancel = (event: CalendarEvent) => {
+    console.log("Cancel session:", event);
+    setShowEventDialog(false);
+    toast({
+      title: "Session cancelled",
+      description: "The session has been cancelled successfully",
+    });
+  };
+
+  const handleBookSession = (sessionData: {
+    studentName: string;
+    lessonType: string;
+    start: Date;
+    end: Date;
+  }) => {
+    console.log("Book new session:", sessionData);
+    setShowNewSessionDialog(false);
+    toast({
+      title: "Session booked",
+      description: "The new session has been booked successfully",
+    });
+  };
 
   return (
     <div className="h-[800px] p-4 bg-white rounded-lg shadow">
@@ -169,10 +311,27 @@ export const Calendar = () => {
           toolbar: CustomToolbar,
         }}
         eventPropGetter={eventStyleGetter}
+        slotPropGetter={slotPropGetter}
         className="calendar-custom"
         resources={useResourceView && !selectedCoachId ? resources : undefined}
         resourceIdAccessor="id"
         resourceTitleAccessor="title"
+        selectable
+        onSelectEvent={handleEventClick}
+        onSelectSlot={handleSelectSlot}
+      />
+      <SessionDialog
+        event={selectedEvent}
+        open={showEventDialog}
+        onOpenChange={setShowEventDialog}
+        onReschedule={handleReschedule}
+        onCancel={handleCancel}
+      />
+      <NewSessionDialog
+        open={showNewSessionDialog}
+        onOpenChange={setShowNewSessionDialog}
+        selectedSlot={selectedSlot}
+        onBook={handleBookSession}
       />
     </div>
   );
