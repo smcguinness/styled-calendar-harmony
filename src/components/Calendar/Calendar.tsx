@@ -28,19 +28,36 @@ const coaches: Coach[] = [
 
 // Function to generate a color based on coach ID
 const generateCoachColor = (coachId: string): string => {
-  // Simple hash function to generate a consistent hue for each coach
+  // Predefined base colors that work well with white text
+  const baseColors = [
+    { h: 200, s: 75, l: 45 }, // Blue
+    { h: 340, s: 65, l: 47 }, // Pink/Red
+    { h: 150, s: 65, l: 40 }, // Green
+    { h: 270, s: 65, l: 45 }, // Purple
+    { h: 25, s: 75, l: 45 },  // Orange
+    { h: 190, s: 70, l: 42 }, // Teal
+  ];
+
+  // Use hash to select a base color and slightly modify it
   let hash = 0;
   for (let i = 0; i < coachId.length; i++) {
     hash = coachId.charCodeAt(i) + ((hash << 5) - hash);
   }
+
+  // Select base color
+  const baseColor = baseColors[Math.abs(hash) % baseColors.length];
   
-  // Convert hash to hue (0-360)
-  const hue = hash % 360;
-  // Use fixed saturation and lightness for consistency
-  return `hsl(${hue}, 70%, 65%)`;
+  // Slightly modify the base color to create variation while maintaining readability
+  const hueOffset = (hash % 30) - 15; // Small hue variation (-15 to +15)
+  const saturationOffset = (hash % 10) - 5; // Small saturation variation (-5 to +5)
+  
+  const h = (baseColor.h + hueOffset + 360) % 360; // Ensure hue stays in 0-360 range
+  const s = Math.max(60, Math.min(80, baseColor.s + saturationOffset)); // Keep saturation in readable range
+  const l = baseColor.l; // Keep lightness constant for consistent readability
+
+  return `hsl(${h}, ${s}%, ${l}%)`;
 };
 
-// Generate sample events across a week
 const generateSampleEvents = (): CalendarEvent[] => {
   const events: CalendarEvent[] = [];
   const startOfWeekDate = startOfWeek(new Date());
@@ -103,7 +120,8 @@ export const Calendar = () => {
         border: 'none',
         borderRadius: '4px',
         color: '#fff',
-        textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.4)', // Increased text shadow for better readability
+        fontWeight: '500',
       },
     };
   };
