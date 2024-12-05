@@ -42,7 +42,7 @@
 }
 
 .calendar-custom .rbc-header {
-  @apply py-2 font-semibold text-sm border-neutral-200;
+  @apply py-3 font-semibold text-sm border-neutral-200 min-h-[48px] flex items-center justify-center;
 }
 
 .calendar-custom .rbc-month-view {
@@ -66,7 +66,7 @@
 }
 
 .calendar-custom .rbc-date-cell {
-  @apply p-1 text-sm;
+  @apply p-2 text-sm text-right;
 }
 
 .calendar-custom .rbc-button-link {
