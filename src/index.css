@@ -104,16 +104,12 @@
 
 /* Add styles for blocked times */
 .calendar-custom .blocked-time {
-  @apply cursor-not-allowed bg-neutral-100 relative border-l-4 border-red-400;
-}
-
-.calendar-custom .blocked-time::before {
-  content: '⛔';
-  @apply absolute left-2 top-1/2 -translate-y-1/2 text-xs opacity-50;
+  @apply cursor-not-allowed bg-neutral-200 relative;
+  border: none !important;
 }
 
 .calendar-custom .blocked-time:hover {
-  @apply bg-neutral-200;
+  @apply bg-neutral-300;
 }
 
 .calendar-custom .blocked-time:hover::after {
