@@ -302,7 +302,11 @@ export const Calendar = () => {
           <Toggle
             pressed={useResourceView}
             onPressedChange={setUseResourceView}
-            className="ml-4"
+            className={`ml-4 px-4 py-2 text-sm font-medium transition-colors
+              ${useResourceView 
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                : 'hover:bg-muted bg-transparent border border-input'
+              }`}
             aria-label="Toggle resource view"
           >
             Group by Coach
