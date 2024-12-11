@@ -28,7 +28,8 @@ export default function Schedule() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center border-b">
+      <div className="flex items-center gap-4 border-b">
+        <span className="text-sm font-medium text-gray-500">View as:</span>
         <ToggleGroup
           type="single"
           value={viewMode}
@@ -38,26 +39,26 @@ export default function Schedule() {
           <ToggleGroupItem
             value="calendar"
             aria-label="Calendar View"
-            className={`flex items-center gap-2 px-4 py-2 ${
+            className={`p-2 ${
               viewMode === "calendar"
                 ? "border-b-2 border-[#002A5C] text-[#002A5C]"
                 : "text-gray-500"
             }`}
+            title="Calendar View"
           >
-            <CalendarDays className="h-4 w-4" />
-            UPCOMING
+            <CalendarDays className="h-5 w-5" />
           </ToggleGroupItem>
           <ToggleGroupItem
             value="list"
             aria-label="List View"
-            className={`flex items-center gap-2 px-4 py-2 ${
+            className={`p-2 ${
               viewMode === "list"
                 ? "border-b-2 border-[#002A5C] text-[#002A5C]"
                 : "text-gray-500"
             }`}
+            title="List View"
           >
-            <List className="h-4 w-4" />
-            PAST
+            <List className="h-5 w-5" />
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
