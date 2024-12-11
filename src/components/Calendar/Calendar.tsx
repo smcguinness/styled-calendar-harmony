@@ -19,7 +19,47 @@ const localizer = {
   startOfWeek: (date: Date) => {
     return DateTime.fromJSDate(date).startOf('week').toJSDate();
   },
-  getDay: (date: Date) => DateTime.fromJSDate(date).weekday - 1, // Luxon uses 1-7 for weekdays
+  getDay: (date: Date) => DateTime.fromJSDate(date).weekday - 1,
+  startOf: (date: Date, unit: 'week' | 'month' | 'year' | 'day') => {
+    return DateTime.fromJSDate(date).startOf(unit).toJSDate();
+  },
+  endOf: (date: Date, unit: 'week' | 'month' | 'year' | 'day') => {
+    return DateTime.fromJSDate(date).endOf(unit).toJSDate();
+  },
+  add: (date: Date, amount: number, unit: 'week' | 'month' | 'year' | 'day' | 'hours' | 'minutes') => {
+    return DateTime.fromJSDate(date).plus({ [unit]: amount }).toJSDate();
+  },
+  eq: (date1: Date, date2: Date) => {
+    return DateTime.fromJSDate(date1).hasSame(DateTime.fromJSDate(date2), 'day');
+  },
+  lt: (date1: Date, date2: Date) => {
+    return DateTime.fromJSDate(date1) < DateTime.fromJSDate(date2);
+  },
+  gt: (date1: Date, date2: Date) => {
+    return DateTime.fromJSDate(date1) > DateTime.fromJSDate(date2);
+  },
+  merge: (date: Date, time: Date) => {
+    const dt1 = DateTime.fromJSDate(date);
+    const dt2 = DateTime.fromJSDate(time);
+    return dt1.set({
+      hour: dt2.hour,
+      minute: dt2.minute,
+      second: dt2.second,
+      millisecond: dt2.millisecond,
+    }).toJSDate();
+  },
+  range: (start: Date, end: Date) => {
+    const current = DateTime.fromJSDate(start);
+    const last = DateTime.fromJSDate(end);
+    const days = [];
+    let day = current.startOf('day');
+
+    while (day <= last) {
+      days.push(day.toJSDate());
+      day = day.plus({ days: 1 });
+    }
+    return days;
+  },
   locales: {
     'en-US': {
       week: {
@@ -63,32 +103,27 @@ const coaches: Coach[] = [
 
 // Function to generate a color based on coach ID
 const generateCoachColor = (coachId: string): string => {
-  // Predefined base colors that work well with white text
   const baseColors = [
-    { h: 200, s: 75, l: 45 }, // Blue
-    { h: 340, s: 65, l: 47 }, // Pink/Red
-    { h: 150, s: 65, l: 40 }, // Green
-    { h: 270, s: 65, l: 45 }, // Purple
-    { h: 25, s: 75, l: 45 },  // Orange
-    { h: 190, s: 70, l: 42 }, // Teal
+    { h: 200, s: 75, l: 45 },
+    { h: 340, s: 65, l: 47 },
+    { h: 150, s: 65, l: 40 },
+    { h: 270, s: 65, l: 45 },
+    { h: 25, s: 75, l: 45 },
+    { h: 190, s: 70, l: 42 },
   ];
 
-  // Use hash to select a base color and slightly modify it
   let hash = 0;
   for (let i = 0; i < coachId.length; i++) {
     hash = coachId.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  // Select base color
   const baseColor = baseColors[Math.abs(hash) % baseColors.length];
-  
-  // Slightly modify the base color to create variation while maintaining readability
-  const hueOffset = (hash % 30) - 15; // Small hue variation (-15 to +15)
-  const saturationOffset = (hash % 10) - 5; // Small saturation variation (-5 to +5)
-  
-  const h = (baseColor.h + hueOffset + 360) % 360; // Ensure hue stays in 0-360 range
-  const s = Math.max(60, Math.min(80, baseColor.s + saturationOffset)); // Keep saturation in readable range
-  const l = baseColor.l; // Keep lightness constant for consistent readability
+  const hueOffset = (hash % 30) - 15;
+  const saturationOffset = (hash % 10) - 5;
+
+  const h = (baseColor.h + hueOffset + 360) % 360;
+  const s = Math.max(60, Math.min(80, baseColor.s + saturationOffset));
+  const l = baseColor.l;
 
   return `hsl(${h}, ${s}%, ${l}%)`;
 };
@@ -99,17 +134,16 @@ const generateSampleEvents = (): CalendarEvent[] => {
   let eventId = 1;
 
   coaches.forEach(coach => {
-    // Generate 50 events for each coach
     for (let i = 0; i < 50; i++) {
       const dayOffset = Math.floor(Math.random() * 7);
       const hour = 9 + Math.floor(Math.random() * 7);
       const minute = Math.floor(Math.random() * 4) * 15;
-      
+
       const start = DateTime.fromJSDate(startOfWeekDate)
         .plus({ days: dayOffset })
         .set({ hour, minute })
         .toJSDate();
-      
+
       const durationInMinutes = [30, 60, 90, 120][Math.floor(Math.random() * 4)];
       const end = DateTime.fromJSDate(start).plus({ minutes: durationInMinutes }).toJSDate();
 
@@ -141,12 +175,10 @@ export const Calendar = () => {
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const { toast } = useToast();
 
-  // Filter events based on selected coach
   const filteredEvents = selectedCoachId
     ? sampleEvents.filter((event) => event.coachId === selectedCoachId)
     : sampleEvents;
 
-  // Convert coaches to resources format
   const resources = coaches.map(coach => ({
     id: coach.id,
     title: coach.name,
@@ -161,7 +193,6 @@ export const Calendar = () => {
     const timeStart = DateTime.fromJSDate(start);
     const timeEnd = DateTime.fromJSDate(end);
 
-    // Check if time is within availability
     const compareStart = DateTime.fromObject({
       hour: timeStart.hour,
       minute: timeStart.minute,
@@ -175,7 +206,6 @@ export const Calendar = () => {
       return true;
     }
 
-    // Check if time overlaps with blocked times
     if (coach.blockedTimes) {
       return coach.blockedTimes.some(
         blocked =>
@@ -187,7 +217,6 @@ export const Calendar = () => {
     return false;
   };
 
-  // Custom event style
   const eventStyleGetter = (event: CalendarEvent) => {
     const backgroundColor = generateCoachColor(event.coachId);
     return {
@@ -203,9 +232,7 @@ export const Calendar = () => {
     };
   };
 
-  // Custom slot style for blocked times
   const slotPropGetter = (date: Date, resourceId?: string) => {
-    // When using resource view, check blocked times for the specific coach
     const coachToCheck = resourceId || selectedCoachId;
     
     if (!coachToCheck) return {};
@@ -229,7 +256,6 @@ export const Calendar = () => {
     };
   };
 
-  // Map events to include resourceId when using resource view
   const eventsWithResource = filteredEvents.map(event => ({
     ...event,
     resourceId: event.coachId,
