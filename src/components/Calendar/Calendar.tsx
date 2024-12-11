@@ -1,6 +1,5 @@
 import { Calendar as BigCalendar, dateFnsLocalizer, View, SlotInfo } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay, addDays, setHours, setMinutes, isBefore, isAfter, set } from "date-fns";
-import { enUS } from "date-fns/locale/en-US";
+import { DateTime } from "luxon";
 import { useState } from "react";
 import { CustomToolbar } from "./CustomToolbar";
 import { CoachSelector } from "./CoachSelector";
@@ -11,17 +10,28 @@ import { NewSessionDialog } from "./NewSessionDialog";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useToast } from "@/components/ui/use-toast";
 
-const locales = {
-  "en-US": enUS,
+// Custom localizer using Luxon
+const localizer = {
+  format: (date: Date, format: string) => {
+    return DateTime.fromJSDate(date).toFormat(format);
+  },
+  parse: (str: string) => DateTime.fromISO(str).toJSDate(),
+  startOfWeek: (date: Date) => {
+    return DateTime.fromJSDate(date).startOf('week').toJSDate();
+  },
+  getDay: (date: Date) => DateTime.fromJSDate(date).weekday - 1, // Luxon uses 1-7 for weekdays
+  locales: {
+    'en-US': {
+      week: {
+        dow: 0,
+        doy: 1,
+      },
+      weekdaysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+      months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+      monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    },
+  },
 };
-
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-});
 
 // Sample coaches data with availability
 const coaches: Coach[] = [
@@ -32,8 +42,8 @@ const coaches: Coach[] = [
     availability: { start: "08:00", end: "16:00" },
     blockedTimes: [
       {
-        start: setHours(setMinutes(new Date(), 0), 10),
-        end: setHours(setMinutes(new Date(), 0), 12),
+        start: DateTime.now().set({ hour: 10, minute: 0 }).toJSDate(),
+        end: DateTime.now().set({ hour: 12, minute: 0 }).toJSDate(),
       },
     ],
   },
@@ -85,23 +95,23 @@ const generateCoachColor = (coachId: string): string => {
 
 const generateSampleEvents = (): CalendarEvent[] => {
   const events: CalendarEvent[] = [];
-  const startOfWeekDate = startOfWeek(new Date());
+  const startOfWeekDate = DateTime.now().startOf('week').toJSDate();
   let eventId = 1;
 
   coaches.forEach(coach => {
     // Generate 50 events for each coach
     for (let i = 0; i < 50; i++) {
       const dayOffset = Math.floor(Math.random() * 7);
-      const hour = 9 + Math.floor(Math.random() * 7); // Adjusted to be within availability
+      const hour = 9 + Math.floor(Math.random() * 7);
       const minute = Math.floor(Math.random() * 4) * 15;
       
-      const start = setMinutes(
-        setHours(addDays(startOfWeekDate, dayOffset), hour),
-        minute
-      );
+      const start = DateTime.fromJSDate(startOfWeekDate)
+        .plus({ days: dayOffset })
+        .set({ hour, minute })
+        .toJSDate();
       
       const durationInMinutes = [30, 60, 90, 120][Math.floor(Math.random() * 4)];
-      const end = new Date(start.getTime() + durationInMinutes * 60000);
+      const end = DateTime.fromJSDate(start).plus({ minutes: durationInMinutes }).toJSDate();
 
       events.push({
         id: eventId++,
@@ -109,7 +119,7 @@ const generateSampleEvents = (): CalendarEvent[] => {
         start,
         end,
         coachId: coach.id,
-        studentName: `Student ${eventId}`, // Added sample student names
+        studentName: `Student ${eventId}`,
       });
     }
   });
@@ -146,26 +156,22 @@ export const Calendar = () => {
     const coach = coaches.find(c => c.id === coachId);
     if (!coach || !coach.availability) return true;
 
-    const startTime = set(new Date(), {
-      hours: parseInt(coach.availability.start.split(":")[0]),
-      minutes: parseInt(coach.availability.start.split(":")[1]),
-    });
-    const endTime = set(new Date(), {
-      hours: parseInt(coach.availability.end.split(":")[0]),
-      minutes: parseInt(coach.availability.end.split(":")[1]),
-    });
+    const startTime = DateTime.fromFormat(coach.availability.start, "HH:mm");
+    const endTime = DateTime.fromFormat(coach.availability.end, "HH:mm");
+    const timeStart = DateTime.fromJSDate(start);
+    const timeEnd = DateTime.fromJSDate(end);
 
     // Check if time is within availability
-    const timeStart = set(new Date(), {
-      hours: start.getHours(),
-      minutes: start.getMinutes(),
+    const compareStart = DateTime.fromObject({
+      hour: timeStart.hour,
+      minute: timeStart.minute,
     });
-    const timeEnd = set(new Date(), {
-      hours: end.getHours(),
-      minutes: end.getMinutes(),
+    const compareEnd = DateTime.fromObject({
+      hour: timeEnd.hour,
+      minute: timeEnd.minute,
     });
 
-    if (isBefore(timeStart, startTime) || isAfter(timeEnd, endTime)) {
+    if (compareStart < startTime || compareEnd > endTime) {
       return true;
     }
 
@@ -173,7 +179,8 @@ export const Calendar = () => {
     if (coach.blockedTimes) {
       return coach.blockedTimes.some(
         blocked =>
-          (isBefore(start, blocked.end) && isAfter(end, blocked.start))
+          timeStart < DateTime.fromJSDate(blocked.end) && 
+          timeEnd > DateTime.fromJSDate(blocked.start)
       );
     }
 
