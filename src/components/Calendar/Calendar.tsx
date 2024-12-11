@@ -1,4 +1,4 @@
-import { Calendar as BigCalendar, dateFnsLocalizer, View, SlotInfo } from "react-big-calendar";
+import { Calendar as BigCalendar, luxonLocalizer, View, SlotInfo } from "react-big-calendar";
 import { DateTime } from "luxon";
 import { useState } from "react";
 import { CustomToolbar } from "./CustomToolbar";
@@ -10,68 +10,8 @@ import { NewSessionDialog } from "./NewSessionDialog";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useToast } from "@/components/ui/use-toast";
 
-// Custom localizer using Luxon
-const localizer = {
-  format: (date: Date, format: string) => {
-    return DateTime.fromJSDate(date).toFormat(format);
-  },
-  parse: (str: string) => DateTime.fromISO(str).toJSDate(),
-  startOfWeek: (date: Date) => {
-    return DateTime.fromJSDate(date).startOf('week').toJSDate();
-  },
-  getDay: (date: Date) => DateTime.fromJSDate(date).weekday - 1,
-  startOf: (date: Date, unit: 'week' | 'month' | 'year' | 'day') => {
-    return DateTime.fromJSDate(date).startOf(unit).toJSDate();
-  },
-  endOf: (date: Date, unit: 'week' | 'month' | 'year' | 'day') => {
-    return DateTime.fromJSDate(date).endOf(unit).toJSDate();
-  },
-  add: (date: Date, amount: number, unit: 'week' | 'month' | 'year' | 'day' | 'hours' | 'minutes') => {
-    return DateTime.fromJSDate(date).plus({ [unit]: amount }).toJSDate();
-  },
-  eq: (date1: Date, date2: Date) => {
-    return DateTime.fromJSDate(date1).hasSame(DateTime.fromJSDate(date2), 'day');
-  },
-  lt: (date1: Date, date2: Date) => {
-    return DateTime.fromJSDate(date1) < DateTime.fromJSDate(date2);
-  },
-  gt: (date1: Date, date2: Date) => {
-    return DateTime.fromJSDate(date1) > DateTime.fromJSDate(date2);
-  },
-  merge: (date: Date, time: Date) => {
-    const dt1 = DateTime.fromJSDate(date);
-    const dt2 = DateTime.fromJSDate(time);
-    return dt1.set({
-      hour: dt2.hour,
-      minute: dt2.minute,
-      second: dt2.second,
-      millisecond: dt2.millisecond,
-    }).toJSDate();
-  },
-  range: (start: Date, end: Date) => {
-    const current = DateTime.fromJSDate(start);
-    const last = DateTime.fromJSDate(end);
-    const days = [];
-    let day = current.startOf('day');
-
-    while (day <= last) {
-      days.push(day.toJSDate());
-      day = day.plus({ days: 1 });
-    }
-    return days;
-  },
-  locales: {
-    'en-US': {
-      week: {
-        dow: 0,
-        doy: 1,
-      },
-      weekdaysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-      months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-      monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    },
-  },
-};
+// Use the built-in luxonLocalizer
+const localizer = luxonLocalizer(DateTime);
 
 // Sample coaches data with availability
 const coaches: Coach[] = [
