@@ -1,5 +1,5 @@
 import { Calendar as BigCalendar, luxonLocalizer, View, SlotInfo } from "react-big-calendar";
-import { DateTime } from "luxon";
+import { DateTime, Settings } from "luxon";
 import { useState } from "react";
 import { CustomToolbar } from "./CustomToolbar";
 import { CoachSelector } from "./CoachSelector";
@@ -9,6 +9,9 @@ import { SessionDialog } from "./SessionDialog";
 import { NewSessionDialog } from "./NewSessionDialog";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useToast } from "@/components/ui/use-toast";
+
+// Set default locale for Luxon
+Settings.defaultLocale = "en-US";
 
 // Use the built-in luxonLocalizer
 const localizer = luxonLocalizer(DateTime);
