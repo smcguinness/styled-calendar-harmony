@@ -10,11 +10,12 @@ import { NewSessionDialog } from "./NewSessionDialog";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useToast } from "@/components/ui/use-toast";
 
-// Set default locale for Luxon
+// Set default locale for Luxon and ensure it's loaded
 Settings.defaultLocale = "en-US";
+Settings.defaultZone = "local";
 
-// Use the built-in luxonLocalizer
-const localizer = luxonLocalizer(DateTime);
+// Initialize the localizer with DateTime
+const localizer = luxonLocalizer(DateTime, { firstDayOfWeek: 0 });
 
 // Sample coaches data with availability
 const coaches: Coach[] = [
