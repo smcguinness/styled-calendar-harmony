@@ -1,4 +1,5 @@
-import { ToolbarProps, NavigateAction } from "react-big-calendar";
+
+import { ToolbarProps } from "react-big-calendar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -34,13 +35,6 @@ export const CustomToolbar = (props: ToolbarProps) => {
         <h2 className="text-lg font-semibold ml-4">{label}</h2>
       </div>
       <div className="flex gap-2">
-        <Button
-          variant={view === "month" ? "default" : "outline"}
-          onClick={() => onView("month")}
-          className="h-8"
-        >
-          Month
-        </Button>
         <Button
           variant={view === "week" ? "default" : "outline"}
           onClick={() => onView("week")}
