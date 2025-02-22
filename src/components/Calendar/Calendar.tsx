@@ -117,6 +117,23 @@ export const Calendar = () => {
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const { toast } = useToast();
 
+  // Function to get the dates to highlight in the date picker
+  const getSelectedDates = () => {
+    if (view === "week") {
+      const start = DateTime.fromJSDate(date).startOf("week");
+      const dates = Array.from({ length: 7 }, (_, i) => 
+        start.plus({ days: i }).toJSDate()
+      );
+      return dates;
+    }
+    return [date];
+  };
+
+  // Function to check if a date is today
+  const isToday = (day: Date) => {
+    return DateTime.fromJSDate(day).hasSame(DateTime.now(), "day");
+  };
+
   const filteredEvents = selectedCoachId
     ? sampleEvents.filter((event) => event.coachId === selectedCoachId)
     : sampleEvents;
@@ -186,6 +203,20 @@ export const Calendar = () => {
           selected={date}
           onSelect={(newDate) => newDate && setDate(newDate)}
           className="border rounded-lg"
+          modifiers={{
+            selected: getSelectedDates(),
+            today: [new Date()],
+          }}
+          modifiersStyles={{
+            selected: {
+              backgroundColor: "var(--primary)",
+              color: "white",
+            },
+            today: {
+              border: "2px solid var(--primary)",
+              color: "var(--primary)",
+            },
+          }}
         />
         <CoachList
           coaches={coaches}

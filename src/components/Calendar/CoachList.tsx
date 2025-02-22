@@ -36,7 +36,7 @@ export const CoachList = ({
             </div>
           </div>
           {coaches.map((coach) => {
-            const bookedHours = calculateBookedHours(coach.id);
+            const hours = calculateBookedHours(coach.id);
             const backgroundColor = generateCoachColor(coach.id);
             
             return (
@@ -60,7 +60,7 @@ export const CoachList = ({
                   </div>
                 </div>
                 <div className="text-sm text-gray-500">
-                  {bookedHours}h booked
+                  {hours}h
                 </div>
               </div>
             );

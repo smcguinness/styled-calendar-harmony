@@ -118,4 +118,17 @@
          bg-black/75 text-white px-2 py-1 rounded text-xs z-10;
 }
 
+/* Date Picker Custom Styles */
+.rdp-day_today:not(.rdp-day_selected) {
+  @apply border-2 border-primary text-primary font-medium;
+}
+
+.rdp-day_selected {
+  @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground;
+}
+
+.rdp-day_today.rdp-day_selected {
+  @apply border-2 border-primary-foreground;
+}
+
 /* Remaining calendar styles */
