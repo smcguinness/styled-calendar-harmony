@@ -1,7 +1,6 @@
 
 import { CalendarEvent } from "@/types/calendar";
 import { DateTime } from "luxon";
-import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AgendaViewProps {
@@ -34,12 +33,14 @@ export const AgendaView = ({ events, generateCoachColor }: AgendaViewProps) => {
 
   return (
     <ScrollArea className="h-[calc(100vh-200px)] pr-4">
-      <div className="space-y-6">
+      <div className="space-y-8 py-4">
         {Object.entries(groupedEvents).map(([date, { dayName, day, events }]) => (
-          <div key={date} className="flex gap-4">
-            <div className="flex flex-col items-center w-16">
-              <div className="text-sm font-medium text-gray-500">{dayName}</div>
-              <div className="text-2xl font-bold text-blue-600">{day}</div>
+          <div key={date} className="flex gap-6">
+            <div className="flex flex-col items-center">
+              <div className="text-sm font-medium text-gray-600">{dayName}</div>
+              <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-semibold">
+                {day}
+              </div>
             </div>
             <div className="flex-1 space-y-3">
               {events.map((event) => {
@@ -52,31 +53,34 @@ export const AgendaView = ({ events, generateCoachColor }: AgendaViewProps) => {
                 const borderColor = generateCoachColor(event.coachId);
                 
                 return (
-                  <Card 
+                  <div 
                     key={event.id}
-                    className="relative overflow-hidden hover:shadow-md transition-shadow"
+                    className="relative bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
                   >
                     <div 
-                      className="absolute left-0 top-0 bottom-0 w-1"
+                      className="absolute left-0 top-0 bottom-0 w-1.5"
                       style={{ backgroundColor: borderColor }}
                     />
                     <div className="p-4 pl-6">
-                      <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-medium text-gray-900">{event.title}</h3>
-                        <div className="text-sm text-gray-600">
-                          {startTime}
-                          <br />
-                          {endTime}
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <h3 className="font-medium text-gray-900 text-base">
+                            {event.title}
+                          </h3>
+                          <div className="text-sm text-gray-500 flex items-center gap-3">
+                            <span>{duration} minutes</span>
+                            {event.studentName && (
+                              <span>{event.studentName}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-600 text-right font-medium">
+                          <div>{startTime}</div>
+                          <div>{endTime}</div>
                         </div>
                       </div>
-                      <div className="flex gap-4 text-sm text-gray-500">
-                        <div>{duration} minutes</div>
-                        {event.studentName && (
-                          <div>{event.studentName}</div>
-                        )}
-                      </div>
                     </div>
-                  </Card>
+                  </div>
                 );
               })}
             </div>
