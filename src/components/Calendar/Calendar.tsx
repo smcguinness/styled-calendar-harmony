@@ -210,19 +210,12 @@ export const Calendar = () => {
     if (view === "agenda") {
       return (
         <div className="h-full flex flex-col">
-          <BigCalendar
-            localizer={localizer}
-            events={filteredEvents} // Use filtered events here instead of empty array
+          <CustomToolbar
             view={view}
             onView={setView}
-            views={['week', 'day', 'agenda']}
             date={date}
             onNavigate={setDate}
-            components={{
-              toolbar: CustomToolbar,
-            }}
-            className="flex-none"
-            toolbar={true}
+            label={DateTime.fromJSDate(date).toFormat('LLLL yyyy')}
           />
           <AgendaView 
             events={filteredEvents} 
