@@ -120,15 +120,29 @@
 
 /* Date Picker Custom Styles */
 .rdp-day_today:not(.rdp-day_selected) {
-  @apply border-2 border-primary text-primary font-medium;
+  @apply bg-blue-50 text-primary font-semibold relative;
+}
+
+.rdp-day_today:not(.rdp-day_selected)::after {
+  content: '';
+  @apply absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full;
 }
 
 .rdp-day_selected {
-  @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground;
+  @apply bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground font-semibold;
 }
 
 .rdp-day_today.rdp-day_selected {
-  @apply border-2 border-primary-foreground;
+  @apply relative;
+}
+
+.rdp-day_today.rdp-day_selected::after {
+  content: '';
+  @apply absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary-foreground rounded-full;
+}
+
+.rdp-day:hover:not(.rdp-day_selected) {
+  @apply bg-gray-100;
 }
 
 /* Remaining calendar styles */
