@@ -1,4 +1,3 @@
-
 import { Calendar as BigCalendar, luxonLocalizer, View, SlotInfo } from "react-big-calendar";
 import { DateTime, Settings } from "luxon";
 import { useState } from "react";
@@ -183,7 +182,7 @@ export const Calendar = () => {
       return acc + duration;
     }, 0);
 
-    return Math.round(totalMinutes / 60 * 10) / 10; // Round to 1 decimal place
+    return Math.round(totalMinutes / 60 * 10) / 10;
   };
 
   const handleEventClick = (event: CalendarEvent) => {
@@ -213,7 +212,7 @@ export const Calendar = () => {
         <div className="h-full flex flex-col">
           <BigCalendar
             localizer={localizer}
-            events={[]} // Empty events since we're only using the toolbar
+            events={filteredEvents} // Use filtered events here instead of empty array
             view={view}
             onView={setView}
             views={['week', 'day', 'agenda']}
