@@ -9,6 +9,7 @@ import { SessionDialog } from "./SessionDialog";
 import { NewSessionDialog } from "./NewSessionDialog";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useToast } from "@/components/ui/use-toast";
+import { AgendaView } from "./AgendaView";
 
 // Set default locale for Luxon
 Settings.defaultLocale = "en-US";
@@ -195,6 +196,39 @@ export const Calendar = () => {
     setShowNewSessionDialog(true);
   };
 
+  const getCalendarContent = () => {
+    if (view === "agenda") {
+      return (
+        <AgendaView 
+          events={filteredEvents} 
+          generateCoachColor={generateCoachColor}
+        />
+      );
+    }
+
+    return (
+      <BigCalendar
+        localizer={localizer}
+        events={filteredEvents}
+        startAccessor="start"
+        endAccessor="end"
+        view={view}
+        onView={setView}
+        views={['week', 'day', 'agenda']}
+        date={date}
+        onNavigate={setDate}
+        components={{
+          toolbar: CustomToolbar,
+        }}
+        eventPropGetter={eventStyleGetter}
+        className="calendar-custom"
+        selectable
+        onSelectEvent={handleEventClick}
+        onSelectSlot={handleSelectSlot}
+      />
+    );
+  };
+
   return (
     <div className="grid grid-cols-[300px_1fr] gap-6 h-[800px] p-4 bg-white rounded-lg shadow">
       <div className="space-y-6">
@@ -228,25 +262,7 @@ export const Calendar = () => {
       </div>
       
       <div>
-        <BigCalendar
-          localizer={localizer}
-          events={filteredEvents}
-          startAccessor="start"
-          endAccessor="end"
-          view={view}
-          onView={setView}
-          views={['week', 'day']}
-          date={date}
-          onNavigate={setDate}
-          components={{
-            toolbar: CustomToolbar,
-          }}
-          eventPropGetter={eventStyleGetter}
-          className="calendar-custom"
-          selectable
-          onSelectEvent={handleEventClick}
-          onSelectSlot={handleSelectSlot}
-        />
+        {getCalendarContent()}
       </div>
 
       <SessionDialog

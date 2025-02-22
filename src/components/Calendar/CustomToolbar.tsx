@@ -49,6 +49,13 @@ export const CustomToolbar = (props: ToolbarProps) => {
         >
           Day
         </Button>
+        <Button
+          variant={view === "agenda" ? "default" : "outline"}
+          onClick={() => onView("agenda")}
+          className="h-8"
+        >
+          Agenda
+        </Button>
       </div>
     </div>
   );
