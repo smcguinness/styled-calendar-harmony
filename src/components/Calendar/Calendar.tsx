@@ -1,3 +1,4 @@
+
 import { Calendar as BigCalendar, luxonLocalizer, View, SlotInfo } from "react-big-calendar";
 import { DateTime, Settings } from "luxon";
 import { useState } from "react";
@@ -209,10 +210,26 @@ export const Calendar = () => {
   const getCalendarContent = () => {
     if (view === "agenda") {
       return (
-        <AgendaView 
-          events={filteredEvents} 
-          generateCoachColor={generateCoachColor}
-        />
+        <div className="h-full flex flex-col">
+          <BigCalendar
+            localizer={localizer}
+            events={[]} // Empty events since we're only using the toolbar
+            view={view}
+            onView={setView}
+            views={['week', 'day', 'agenda']}
+            date={date}
+            onNavigate={setDate}
+            components={{
+              toolbar: CustomToolbar,
+            }}
+            className="flex-none"
+            toolbar={true}
+          />
+          <AgendaView 
+            events={filteredEvents} 
+            generateCoachColor={generateCoachColor}
+          />
+        </div>
       );
     }
 
