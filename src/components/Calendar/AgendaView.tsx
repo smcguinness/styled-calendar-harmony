@@ -27,6 +27,11 @@ export const AgendaView = ({ events, generateCoachColor }: AgendaViewProps) => {
     return acc;
   }, {} as Record<string, { dayName: string; day: string; events: CalendarEvent[] }>);
 
+  // Sort events within each day by start time
+  Object.values(groupedEvents).forEach(group => {
+    group.events.sort((a, b) => a.start.getTime() - b.start.getTime());
+  });
+
   return (
     <ScrollArea className="h-[calc(100vh-200px)] pr-4">
       <div className="space-y-6">
