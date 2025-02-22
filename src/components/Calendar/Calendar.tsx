@@ -155,8 +155,18 @@ export const Calendar = () => {
   };
 
   const calculateBookedHours = (coachId: string): number => {
-    const viewStart = DateTime.fromJSDate(date).startOf(view);
-    const viewEnd = DateTime.fromJSDate(date).endOf(view);
+    let viewStart: DateTime;
+    let viewEnd: DateTime;
+    
+    // Handle different view types
+    if (view === "agenda") {
+      // Use week view range for agenda
+      viewStart = DateTime.fromJSDate(date).startOf("week");
+      viewEnd = DateTime.fromJSDate(date).endOf("week");
+    } else {
+      viewStart = DateTime.fromJSDate(date).startOf(view as "week" | "day");
+      viewEnd = DateTime.fromJSDate(date).endOf(view as "week" | "day");
+    }
     
     const coachEvents = sampleEvents.filter(event => 
       event.coachId === coachId &&
